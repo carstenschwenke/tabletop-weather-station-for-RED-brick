@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 """
 Tabletop Weather Station
 Copyright (C) 2018 Olaf Lüke <olaf@tinkerforge.com>
@@ -87,48 +88,6 @@ from tabletop_weather_station_demo.screens import screen_set_lcd, screen_tab_sel
 from tabletop_weather_station_demo.value_db import ValueDB
 from tabletop_weather_station_demo.config import DEMO_VERSION
 
-def get_resources_path(relative_path, warn_on_missing_file=True):
-    try:
-        # PyInstaller stores data files in a tmp folder refered to as _MEIPASS
-        #pylint: disable=protected-access
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.dirname(os.path.realpath(__file__))
-
-    path = os.path.join(base_path, relative_path)
-
-    # If the path still doesn't exist, this function won't help you
-    if not os.path.exists(path):
-        if warn_on_missing_file:
-            print("Resource not found: " + relative_path)
-        return None
-
-    return path
-
-def load_commit_id(name):
-    try:
-        # Don't warn if the file is missing, as it is expected when run from source.
-        path = get_resources_path(name, warn_on_missing_file=False)
-
-        if path is not None:
-            with open(path, 'r') as f:
-                return f.read().strip()
-    except FileNotFoundError:
-        pass
-
-    return None
-
-INTERNAL = load_commit_id('internal')
-
-SNAPSHOT = load_commit_id('snapshot')
-
-DEMO_FULL_VERSION = DEMO_VERSION
-
-if INTERNAL != None:
-    DEMO_FULL_VERSION += '+internal~{}'.format(INTERNAL)
-elif SNAPSHOT != None:
-    DEMO_FULL_VERSION += '+snapshot~{}'.format(SNAPSHOT)
-
 if gui:
     class GUIHandler(QtCore.QObject, log.Handler):
         qtcb_add = QtCore.pyqtSignal(str)
@@ -151,7 +110,7 @@ if gui:
             self.log_edit.centerCursor()
 
 class TabletopWeatherStation(object):
-    HOST = "localhost"
+    HOST = "tisch-wetterstation.lan"
     PORT = 4223
 
     vdb = None
@@ -354,8 +313,8 @@ class TabletopWeatherStation(object):
             self.vdb.add_data_air_quality(iaq_index, iaq_index_accuracy, temperature, humidity, air_pressure)
             self.last_air_quality_time = now
 
-def loop(run_ref, stop_queue, packaged):
-    vdb = ValueDB(gui, packaged)
+def loop(run_ref, stop_queue):
+    vdb = ValueDB(gui)
     tws = TabletopWeatherStation(vdb, run_ref, stop_queue)
     Screen.tws = tws
     Screen.vdb = vdb
@@ -384,7 +343,7 @@ def loop(run_ref, stop_queue, packaged):
         except Error:
             pass
 
-def main(packaged):
+def main():
     if gui:
         from tabletop_weather_station_demo.load_pixmap import load_pixmap
 
@@ -392,7 +351,7 @@ def main(packaged):
 
         main_widget = QtWidgets.QWidget()
         main_widget.setWindowIcon(QtGui.QIcon(load_pixmap('tabletop_weather_station_demo-icon.png')))
-        main_widget.setWindowTitle('Tabletop Weather Station Demo ' + DEMO_FULL_VERSION)
+        main_widget.setWindowTitle('Tabletop Weather Station Demo ' + DEMO_VERSION)
         main_widget.setMinimumSize(800, 450)
 
         button_layout = QtWidgets.QHBoxLayout()
@@ -465,7 +424,7 @@ def main(packaged):
     stop_queue = queue.Queue()
 
     if gui:
-        thread = threading.Thread(target=loop, args=(run_ref, stop_queue, packaged))
+        thread = threading.Thread(target=loop, args=(run_ref, stop_queue))
         thread.daemon = True
         thread.start()
 
@@ -490,7 +449,7 @@ def main(packaged):
         signal.signal(signal.SIGINT, quit_)
         signal.signal(signal.SIGTERM, quit_)
 
-        loop(run_ref, stop_queue, packaged)
+        loop(run_ref, stop_queue)
 
         ec = 0
 
@@ -499,4 +458,4 @@ def main(packaged):
     sys.exit(ec)
 
 if __name__ == '__main__':
-    main(packaged=False)
+    main()

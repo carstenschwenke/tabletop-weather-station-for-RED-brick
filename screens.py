@@ -22,21 +22,27 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.
 """
 
+
 from tabletop_weather_station_demo import icons
 
-TIME_SHORTCUTS = ['1s', '2s', '5s', '10s', '30s', '1m', '2m', '5m', '10m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '10d', '1M']
-TIME_STRINGS   = ['1 second', '2 seconds', '5 seconds', '10 seconds', '30 seconds', '1 minute', '2 minutes', '5 minutes', '10 minutes', '30 minutes', '1 hour', '2 hours', '4 hours', '8 hours', '12 hours', '1 day', '10 days', '1 month']
-TIME_SECONDS   = [1, 2, 5, 10, 30, 1*60, 2*60, 5*60, 10*60, 30*60, 1*60*60, 2*60*60, 4*60*60, 8*60*60, 12*60*60, 1*60*60*24, 10*60*60*24, 30*60*60*24]
+TIME_SHORTCUTS = ['1s', '2s', '5s', '10s', '30s', '1m', '2m', '5m', '10m', '30m', '1h', '2h', '4h', '8h', '12h', '1d',
+                  '10d', '1M']
+TIME_STRINGS = ['1 second', '2 seconds', '5 seconds', '10 seconds', '30 seconds', '1 minute', '2 minutes', '5 minutes',
+                '10 minutes', '30 minutes', '1 hour', '2 hours', '4 hours', '8 hours', '12 hours', '1 day', '10 days',
+                '1 month']
+TIME_SECONDS = [1, 2, 5, 10, 30, 1 * 60, 2 * 60, 5 * 60, 10 * 60, 30 * 60, 1 * 60 * 60, 2 * 60 * 60, 4 * 60 * 60,
+                8 * 60 * 60, 12 * 60 * 60, 1 * 60 * 60 * 24, 10 * 60 * 60 * 24, 30 * 60 * 60 * 24]
+
 
 class Screen:
-    WIDTH  = 128
+    WIDTH = 128
     HEIGHT = 64
 
-    lcd    = None
-    text   = "TBD"
-    icon   = None
-    tws    = None
-    vdb    = None
+    lcd = None
+    text = "TBD"
+    icon = None
+    tws = None
+    vdb = None
 
     def draw_init(self):
         pass
@@ -51,7 +57,7 @@ class Screen:
         pass
 
     def draw_icon(self, x, y, icon):
-        Screen.lcd.write_pixels(x, y, x + icon.WIDTH-1, y + icon.HEIGHT-1, icon.data)
+        Screen.lcd.write_pixels(x, y, x + icon.WIDTH - 1, y + icon.HEIGHT - 1, icon.data)
 
     def scale_data_for_graph(self, data):
         if not data:
@@ -60,12 +66,13 @@ class Screen:
         ret = []
         value_min = min(data)
         value_max = max(data)
-        if value_max-value_min == 0:
-            return [127]*len(data), value_min, value_max
+        if value_max - value_min == 0:
+            return [127] * len(data), value_min, value_max
 
         for d in data:
-            ret.append(int((d-value_min)*255/(value_max-value_min)))
+            ret.append(int((d - value_min) * 255 / (value_max - value_min)))
         return ret, value_min, value_max
+
 
 class IndoorScreen(Screen):
     text = "Data"
@@ -79,7 +86,7 @@ class IndoorScreen(Screen):
 
         self.lcd.draw_text(28, 16, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '\xF8C')
         self.lcd.draw_text(26, 46, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '%RH')
-        self.lcd.draw_text(78, 16, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'hPa')
+        self.lcd.draw_text(78, 16, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'mbar')
         self.lcd.draw_text(78, 46, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'IAQ')
 
         self.lcd.draw_line(0, 26, 127, 26, self.lcd.COLOR_BLACK)
@@ -93,18 +100,18 @@ class IndoorScreen(Screen):
         last_value = self.tws.air_quality_last_value
         iaq_value = last_value.iaq_index
 
-        temperature = '{0:.2f}'.format(last_value.temperature/100.0)
-        temperature = ' '*(5 - len(temperature)) + temperature
-        humidity    = '{0:.2f}'.format(last_value.humidity/100.0)
-        humidity    = ' '*(5 - len(humidity)) + humidity
-        pressure    = '{0:.2f}'.format(last_value.air_pressure/100.0)
-        pressure    = ' '*(5 - len(pressure)) + pressure
-        iaq         = '{0}'.format(iaq_value)
-        iaq         = ' '*(3 - len(iaq)) + iaq
+        temperature = '{0:.2f}'.format(last_value.temperature / 100.0)
+        temperature = ' ' * (5 - len(temperature)) + temperature
+        humidity = '{0:.2f}'.format(last_value.humidity / 100.0)
+        humidity = ' ' * (5 - len(humidity)) + humidity
+        pressure = '{0:.2f}'.format(last_value.air_pressure / 100.0)
+        pressure = ' ' * (5 - len(pressure)) + pressure
+        iaq = '{0}'.format(iaq_value)
+        iaq = ' ' * (3 - len(iaq)) + iaq
 
-        self.lcd.draw_text(20, 0,  self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
+        self.lcd.draw_text(20, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
         self.lcd.draw_text(20, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, humidity)
-        self.lcd.draw_text(68, 0,  self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, pressure)
+        self.lcd.draw_text(68, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, pressure)
         self.lcd.draw_text(78, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, iaq)
 
         if iaq_value < 70:
@@ -119,67 +126,73 @@ class IndoorScreen(Screen):
     def touch_gesture(self, gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age):
         pass
 
+
 class GraphScreen(Screen):
     text = "Graph"
     icon = icons.IconTabGraph
 
-    caption_air_quality  = ['\xF8C', '%RH', 'hPa', 'IAQ']
-    formats_air_quality  = ['{0:.1f}', '{0:.1f}', '{0:.1f}', '{0:.0f}']
+    caption_air_quality = ['\xF8C', '%RH', 'mbar', 'IAQ']
+    formats_air_quality = ['{0:.1f}', '{0:.1f}', '{0:.1f}', '{0:.0f}']
     divisors_air_quality = [100, 100, 100, 1]
-    fields_air_quality   = ['temperature', 'humidity', 'air_pressure', 'iaq_index']
+    fields_air_quality = ['temperature', 'humidity', 'air_pressure', 'iaq_index']
 
-    caption_station      = ['\xF8C', '%RH', 'm/s', 'mm']
-    formats_station      = ['{0:.1f}', '{0:.0f}', '{0:.1f}', '{0:.1f}']
-    divisors_station     = [10, 1, 10, 10]
-    fields_station       = ['temperature', 'humidity', 'wind_speed', 'rain']
+    caption_station = ['\xF8C', '%RH', 'm/s', 'mm']
+    formats_station = ['{0:.1f}', '{0:.0f}', '{0:.1f}', '{0:.1f}']
+    divisors_station = [10, 1, 10, 10]
+    fields_station = ['temperature', 'humidity', 'wind_speed', 'rain']
 
-    caption_sensor       = ['\xF8C', '%RH']
-    formats_sensor       = ['{0:.1f}', '{0:.0f}']
-    divisors_sensor      = [10, 1]
-    fields_sensor        = ['temperature', 'humidity']
+    caption_sensor = ['\xF8C', '%RH']
+    formats_sensor = ['{0:.1f}', '{0:.0f}']
+    divisors_sensor = [10, 1]
+    fields_sensor = ['temperature', 'humidity']
 
-    tables               = ['air_quality', 'station', 'sensor']
+    tables = ['air_quality', 'station', 'sensor']
 
-    def __init__(self, stations = [], sensors = []):
-        self.num      = 0
+    def __init__(self, stations=[], sensors=[]):
+        self.num = 0
         self.stations = stations
-        self.sensors  = sensors
+        self.sensors = sensors
 
     def get_value_properties(self):
         num = self.num
 
         if num < 4:
-            return self.caption_air_quality[num], self.formats_air_quality[num], self.divisors_air_quality[num], self.fields_air_quality[num], self.tables[0], None, None
+            return self.caption_air_quality[num], self.formats_air_quality[num], self.divisors_air_quality[num], \
+                   self.fields_air_quality[num], self.tables[0], None, None
         num -= 4
 
         for i, station in enumerate(self.stations):
             if num < 4:
-                num_icon = (i+1, len(self.stations), icons.rotate_left_90(icons.IconTabStation))
-                return self.caption_station[num], self.formats_station[num], self.divisors_station[num], self.fields_station[num], self.tables[1], station, num_icon
+                num_icon = (i + 1, len(self.stations), icons.rotate_left_90(icons.IconTabStation))
+                return self.caption_station[num], self.formats_station[num], self.divisors_station[num], \
+                       self.fields_station[num], self.tables[1], station, num_icon
             num -= 4
 
         for i, sensor in enumerate(self.sensors):
             if num < 2:
-                num_icon = (i+1, len(self.sensors), icons.rotate_left_90(icons.IconTabSensor))
-                return self.caption_sensor[num], self.formats_sensor[num], self.divisors_sensor[num], self.fields_sensor[num], self.tables[2], sensor, num_icon
+                num_icon = (i + 1, len(self.sensors), icons.rotate_left_90(icons.IconTabSensor))
+                return self.caption_sensor[num], self.formats_sensor[num], self.divisors_sensor[num], \
+                       self.fields_sensor[num], self.tables[2], sensor, num_icon
             num -= 2
 
-        return None # This should never be reachable
+        return None  # This should never be reachable
 
     def get_num_graphs(self):
-        return len(self.caption_air_quality) + len(self.stations)*len(self.caption_station) + len(self.sensors)*len(self.caption_sensor)
+        return len(self.caption_air_quality) + len(self.stations) * len(self.caption_station) + len(self.sensors) * len(
+            self.caption_sensor)
 
     def draw_init(self):
         def draw_updown(offset):
-            self.lcd.draw_line(10+offset, 16, 15+offset, 11, self.num != num_graphs-1)
-            self.lcd.draw_line(15+offset, 11, 20+offset, 16, self.num != num_graphs-1)
-            self.lcd.draw_line(10+offset, 16 + 19, 15+offset, 11 + 19 + 10, self.num != 0)
-            self.lcd.draw_line(15+offset, 11 + 19 + 10, 20+offset, 16 + 19, self.num != 0)
+            self.lcd.draw_line(10 + offset, 16, 15 + offset, 11, self.num != num_graphs - 1)
+            self.lcd.draw_line(15 + offset, 11, 20 + offset, 16, self.num != num_graphs - 1)
+            self.lcd.draw_line(10 + offset, 16 + 19, 15 + offset, 11 + 19 + 10, self.num != 0)
+            self.lcd.draw_line(15 + offset, 11 + 19 + 10, 20 + offset, 16 + 19, self.num != 0)
 
         num_graphs = self.get_num_graphs()
         caption, _, _, _, _, _, num_icon = self.get_value_properties()
 
-        self.lcd.set_gui_graph_configuration(0, self.lcd.GRAPH_TYPE_LINE, 40, 0, 87, 52, TIME_SHORTCUTS[self.tws.graph_resolution_index], caption)
+        self.lcd.set_gui_graph_configuration(0, self.lcd.GRAPH_TYPE_LINE, 40, 0, 87, 52,
+                                             TIME_SHORTCUTS[self.tws.graph_resolution_index], caption)
 
         if num_icon != None:
             # air quality graph
@@ -208,11 +221,11 @@ class GraphScreen(Screen):
 
         scaled_data, value_min, value_max = self.scale_data_for_graph(data)
 
-        value_min = fmt.format(float(value_min)/divisor)
-        value_max = fmt.format(float(value_max)/divisor)
-        value_min = ' '*(6 - len(value_min)) + value_min
-        value_max = ' '*(6 - len(value_max)) + value_max
-        self.lcd.draw_text(2, 0,  self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, value_max)
+        value_min = fmt.format(float(value_min) / divisor)
+        value_max = fmt.format(float(value_max) / divisor)
+        value_min = ' ' * (6 - len(value_min)) + value_min
+        value_max = ' ' * (6 - len(value_max)) + value_max
+        self.lcd.draw_text(2, 0, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, value_max)
         self.lcd.draw_text(2, 45, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, value_min)
         self.lcd.set_gui_graph_data(0, scaled_data)
 
@@ -220,7 +233,7 @@ class GraphScreen(Screen):
         num_graphs = self.get_num_graphs()
 
         if gesture == self.lcd.GESTURE_BOTTOM_TO_TOP:
-            if self.num < num_graphs-1:
+            if self.num < num_graphs - 1:
                 self.num += 1
                 self.lcd.clear_display()
                 self.draw_init()
@@ -237,7 +250,7 @@ class SensorScreen(Screen):
 
     def __init__(self, keys):
         self.keys = keys
-        self.num  = 0
+        self.num = 0
 
     def draw_init(self):
         self.draw_icon(2, 4, icons.IconTemperature)
@@ -245,7 +258,7 @@ class SensorScreen(Screen):
         self.lcd.draw_text(25, 16, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '\xF8C')
         self.lcd.draw_text(70, 16, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '%RH')
 
-        if len(self.keys) >= (self.num + 1)*2:
+        if len(self.keys) >= (self.num + 1) * 2:
             self.draw_icon(2, 30, icons.IconTemperature)
             self.draw_icon(50, 30, icons.IconHumidity)
             self.lcd.draw_text(25, 46, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '\xF8C')
@@ -259,7 +272,7 @@ class SensorScreen(Screen):
     def draw_update(self):
         identifier0 = None
         try:
-            identifier0 = self.keys[self.num*2]
+            identifier0 = self.keys[self.num * 2]
             if self.tws.outdoor_weather_sensor_last_value[identifier0] == None:
                 return
         except:
@@ -269,35 +282,35 @@ class SensorScreen(Screen):
 
         identifier1 = None
         try:
-            identifier1 = self.keys[self.num*2+1]
+            identifier1 = self.keys[self.num * 2 + 1]
             last_value1 = self.tws.outdoor_weather_sensor_last_value[identifier1]
         except:
             last_value1 = None
 
-        temperature = '{0:.1f}'.format(last_value0.temperature/10.0)
-        temperature = ' '*(4 - len(temperature)) + temperature
-        humidity    = '{0:.1f}'.format(last_value0.humidity)
-        humidity    = ' '*(2 - len(humidity)) + humidity
-        sensor      = '{0}/{1}'.format(self.num*2 + 1, len(self.keys))
+        temperature = '{0:.1f}'.format(last_value0.temperature / 10.0)
+        temperature = ' ' * (4 - len(temperature)) + temperature
+        humidity = '{0:.1f}'.format(last_value0.humidity)
+        humidity = ' ' * (2 - len(humidity)) + humidity
+        sensor = '{0}/{1}'.format(self.num * 2 + 1, len(self.keys))
 
-        self.lcd.draw_text(18, 0,   self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
-        self.lcd.draw_text(68, 0,   self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, humidity)
-        self.lcd.draw_text(105, 10,  self.lcd.FONT_6X8,  self.lcd.COLOR_BLACK, sensor)
+        self.lcd.draw_text(18, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
+        self.lcd.draw_text(68, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, humidity)
+        self.lcd.draw_text(105, 10, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, sensor)
 
         if last_value1 != None:
-            temperature = '{0:.1f}'.format(last_value1.temperature/10.0)
-            temperature = ' '*(4 - len(temperature)) + temperature
-            humidity    = '{0:.1f}'.format(last_value1.humidity)
-            humidity    = ' '*(2 - len(humidity)) + humidity
-            sensor      = '{0}/{1}'.format(self.num*2 + 2, len(self.keys))
+            temperature = '{0:.1f}'.format(last_value1.temperature / 10.0)
+            temperature = ' ' * (4 - len(temperature)) + temperature
+            humidity = '{0:.1f}'.format(last_value1.humidity)
+            humidity = ' ' * (2 - len(humidity)) + humidity
+            sensor = '{0}/{1}'.format(self.num * 2 + 2, len(self.keys))
 
-            self.lcd.draw_text(18, 30,  self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
+            self.lcd.draw_text(18, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
             self.lcd.draw_text(68, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, humidity)
-            self.lcd.draw_text(105, 38,  self.lcd.FONT_6X8,  self.lcd.COLOR_BLACK, sensor)
+            self.lcd.draw_text(105, 38, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, sensor)
 
     def touch_gesture(self, gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age):
         if gesture == self.lcd.GESTURE_BOTTOM_TO_TOP:
-            if self.num < ((len(self.keys) + 1)//2) - 1:
+            if self.num < ((len(self.keys) + 1) // 2) - 1:
                 self.num += 1
                 self.lcd.clear_display()
                 self.draw_init()
@@ -307,9 +320,10 @@ class SensorScreen(Screen):
                 self.lcd.clear_display()
                 self.draw_init()
 
+
 class StationScreen(Screen):
-    text       = 'Stati'
-    icon       = icons.IconTabStation
+    text = 'Stati'
+    icon = icons.IconTabStation
     directions = [('N', 0, -7), ('NNE', 3, -6), ('NE', 5, -5), ('ENE', 6, -3),
                   ('E', 7, 0), ('ESE', 6, 3), ('SE', 5, 5), ('SSE', 3, 6),
                   ('S', 0, 7), ('SSW', -3, 6), ('SW', -5, 5), ('WSW', -6, 3),
@@ -317,7 +331,7 @@ class StationScreen(Screen):
 
     def __init__(self, keys):
         self.keys = keys
-        self.num  = 0
+        self.num = 0
 
     def draw_init(self):
         self.draw_icon(2, 4, icons.IconTemperature)
@@ -345,30 +359,31 @@ class StationScreen(Screen):
         except:
             return
 
-        last_value  = self.tws.outdoor_weather_station_last_value[identifier]
+        last_value = self.tws.outdoor_weather_station_last_value[identifier]
         # Get rain for period of 60*60 seconds (mm/h)
-        period_rain = self.vdb.get_data_rain_period(identifier, 60*60)
+        period_rain = self.vdb.get_data_rain_period(identifier, 60 * 60)
 
-        temperature = '{0:.1f}'.format(last_value.temperature/10.0)
-        temperature = ' '*(4 - len(temperature)) + temperature
-        humidity    = '{0:.1f}'.format(last_value.humidity)
-        humidity    = ' '*(2 - len(humidity)) + humidity
-        wind_speed  = '{0:.1f}'.format(last_value.wind_speed/10.0)
-        wind_speed  = ' '*(4 - len(wind_speed)) + wind_speed
+        temperature = '{0:.1f}'.format(last_value.temperature / 10.0)
+        temperature = ' ' * (4 - len(temperature)) + temperature
+        humidity = '{0:.1f}'.format(last_value.humidity)
+        humidity = ' ' * (2 - len(humidity)) + humidity
+        wind_speed = '{0:.1f}'.format(last_value.wind_speed / 10.0)
+        wind_speed = ' ' * (4 - len(wind_speed)) + wind_speed
 
         if period_rain == None:
             period_rain = '  ? '
         else:
-            period_rain = '{0:.1f}'.format(period_rain/10.0)
-            period_rain = ' '*(4 - len(period_rain)) + period_rain
+            period_rain = '{0:.1f}'.format(period_rain / 10.0)
+            period_rain = ' ' * (4 - len(period_rain)) + period_rain
 
-        direction   = last_value.wind_direction
+        direction = last_value.wind_direction
+        direction = (direction + 8) % 16
         battery_low = last_value.battery_low
-        station     = '{0}/{1}'.format(self.num + 1, len(self.keys))
+        station = '{0}/{1}'.format(self.num + 1, len(self.keys))
 
-        self.lcd.draw_text(18, 0,  self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
+        self.lcd.draw_text(18, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, temperature)
         self.lcd.draw_text(18, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, humidity)
-        self.lcd.draw_text(16 + 48, 0,  self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, wind_speed)
+        self.lcd.draw_text(16 + 48, 0, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, wind_speed)
         self.lcd.draw_text(16 + 48, 30, self.lcd.FONT_6X16, self.lcd.COLOR_BLACK, period_rain)
         self.lcd.draw_text(104, 45, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, station)
 
@@ -376,11 +391,11 @@ class StationScreen(Screen):
 
         try:
             d, xdiff, ydiff = self.directions[direction]
-#            if len(d) == 1:
-#                d = ' ' + d + ' '
-#            elif len(d) == 2:
-#                d = ' ' + d
-#            self.lcd.draw_text(104, 33, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, d)
+            #            if len(d) == 1:
+            #                d = ' ' + d + ' '
+            #            elif len(d) == 2:
+            #                d = ' ' + d
+            #            self.lcd.draw_text(104, 33, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, d)
             self.lcd.draw_line(113, 15, 113 + xdiff, 15 + ydiff, True)
         except:
             self.lcd.draw_text(111, 12, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, '?')
@@ -397,7 +412,7 @@ class StationScreen(Screen):
 
     def touch_gesture(self, gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age):
         if gesture == self.lcd.GESTURE_BOTTOM_TO_TOP:
-            if self.num < len(self.keys)-1:
+            if self.num < len(self.keys) - 1:
                 self.num += 1
                 self.lcd.clear_display()
                 self.draw_init()
@@ -406,6 +421,7 @@ class StationScreen(Screen):
                 self.num -= 1
                 self.lcd.clear_display()
                 self.draw_init()
+
 
 class SettingsScreen(Screen):
     text = "Conf"
@@ -417,26 +433,26 @@ class SettingsScreen(Screen):
 
     def draw_time_per_pixel(self, index):
         s = '  {0}  '.format(TIME_STRINGS[index])
-        self.lcd.draw_text(56 - int(len(s)*6/2), 42, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, s)
+        self.lcd.draw_text(56 - int(len(s) * 6 / 2), 42, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, s)
 
     def index_to_slider(self, value):
-        return int(round(value*97.0/(len(TIME_STRINGS)-1)))
+        return int(round(value * 97.0 / (len(TIME_STRINGS) - 1)))
 
     def slider_to_index(self, value):
-        return int(round(value*(len(TIME_STRINGS)-1)/97.0))
+        return int(round(value * (len(TIME_STRINGS) - 1) / 97.0))
 
     def draw_init(self):
         self.lcd.draw_text(0, 0, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'Settings: ' + self.settings[self.num])
         self.draw_icon(108, 11, icons.IconRightSwipeUpDown)
 
-        self.lcd.draw_line(108, 16, 113, 11, self.num != len(self.settings)-1)
-        self.lcd.draw_line(113, 11, 118, 16, self.num != len(self.settings)-1)
+        self.lcd.draw_line(108, 16, 113, 11, self.num != len(self.settings) - 1)
+        self.lcd.draw_line(113, 11, 118, 16, self.num != len(self.settings) - 1)
         self.lcd.draw_line(108, 16 + 19, 113, 11 + 19 + 10, self.num != 0)
         self.lcd.draw_line(113, 11 + 19 + 10, 118, 16 + 19, self.num != 0)
 
         if self.num == 0:
             conf = self.lcd.get_display_configuration()
-            brightness = int(conf.backlight*67/100)
+            brightness = int(conf.backlight * 67 / 100)
             contrast = min(conf.contrast, 67)
 
             self.lcd.set_gui_slider(0, 30, 10, 75, self.lcd.DIRECTION_HORIZONTAL, brightness)
@@ -445,11 +461,13 @@ class SettingsScreen(Screen):
             self.lcd.set_gui_slider(1, 30, 32, 75, self.lcd.DIRECTION_HORIZONTAL, contrast)
             self.lcd.draw_text(0, 36, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'Contr')
         elif self.num == 1:
-            self.lcd.set_gui_slider(0, 0, 10, 105, self.lcd.DIRECTION_HORIZONTAL, self.index_to_slider(self.tws.graph_resolution_index))
+            self.lcd.set_gui_slider(0, 0, 10, 105, self.lcd.DIRECTION_HORIZONTAL,
+                                    self.index_to_slider(self.tws.graph_resolution_index))
             self.lcd.draw_text(5, 30, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'Graph Resolution')
             self.draw_time_per_pixel(self.tws.graph_resolution_index)
         elif self.num == 2:
-            self.lcd.set_gui_slider(0, 0, 10, 105, self.lcd.DIRECTION_HORIZONTAL, self.index_to_slider(self.tws.logging_period_index))
+            self.lcd.set_gui_slider(0, 0, 10, 105, self.lcd.DIRECTION_HORIZONTAL,
+                                    self.index_to_slider(self.tws.logging_period_index))
             self.lcd.draw_text(13, 30, self.lcd.FONT_6X8, self.lcd.COLOR_BLACK, 'Logging Period')
             self.draw_time_per_pixel(self.tws.logging_period_index)
 
@@ -458,7 +476,7 @@ class SettingsScreen(Screen):
             conf = self.lcd.get_display_configuration()
 
             if index == 0:
-                self.lcd.set_display_configuration(conf.contrast, value*100/67, conf.invert, conf.automatic_draw)
+                self.lcd.set_display_configuration(conf.contrast, value * 100 / 67, conf.invert, conf.automatic_draw)
             elif index == 1:
                 self.lcd.set_display_configuration(value, conf.backlight, conf.invert, conf.automatic_draw)
         elif self.num == 1:
@@ -478,7 +496,7 @@ class SettingsScreen(Screen):
 
     def touch_gesture(self, gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age):
         if gesture == self.lcd.GESTURE_BOTTOM_TO_TOP:
-            if self.num < len(self.settings)-1:
+            if self.num < len(self.settings) - 1:
                 self.num += 1
                 self.lcd.remove_gui_button(255)
                 self.lcd.remove_gui_slider(255)
@@ -496,7 +514,8 @@ class SettingsScreen(Screen):
 screens = []
 screen_selected = None
 
-def screen_init(initial_init = True, stations = [], sensors = []):
+
+def screen_init(initial_init=True, stations=[], sensors=[]):
     global screens, screen_selected
     if Screen.lcd == None:
         return
@@ -528,9 +547,10 @@ def screen_init(initial_init = True, stations = [], sensors = []):
         Screen.lcd.set_gui_tab_selected(0)
         screen_tab_selected(0)
 
+
 def screen_update_tabs():
     station_screen = None
-    sensor_screen  = None
+    sensor_screen = None
     for screen in screens:
         if screen.__class__ == StationScreen:
             station_screen = screen
@@ -538,18 +558,21 @@ def screen_update_tabs():
             sensor_screen = screen
 
     station_keys = list(Screen.tws.outdoor_weather_station_last_value.keys())
-    sensor_keys  = list(Screen.tws.outdoor_weather_sensor_last_value.keys())
+    sensor_keys = list(Screen.tws.outdoor_weather_sensor_last_value.keys())
     if ((len(station_keys) > 0) and (station_screen == None)) or \
-       ((len(sensor_keys)  > 0) and (sensor_screen == None)) or \
-       ((station_screen != None) and (station_keys != station_screen.keys)) or \
-       ((station_screen != None) and (sensor_keys  != sensor_screen.keys)):
-       screen_init(False, station_keys, sensor_keys)
+            ((len(sensor_keys) > 0) and (sensor_screen == None)) or \
+            ((station_screen != None) and (station_keys != station_screen.keys)) or \
+            ((station_screen != None) and (sensor_keys != sensor_screen.keys)):
+        screen_init(False, station_keys, sensor_keys)
+
 
 def screen_slider_value(index, value):
     screen_selected.slider_value(index, value)
 
+
 def screen_touch_gesture(gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age):
     screen_selected.touch_gesture(gesture, duration, pressure_max, x_start, x_end, y_start, y_end, age)
+
 
 def screen_tab_selected(index):
     global screen_selected
@@ -560,9 +583,11 @@ def screen_tab_selected(index):
     screen_selected = screens[index]
     screen_selected.draw_init()
 
+
 def screen_set_lcd(lcd):
     Screen.lcd = lcd
     screen_init()
+
 
 def screen_update():
     if screen_selected != None:
