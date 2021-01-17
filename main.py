@@ -33,9 +33,6 @@ if hasattr(sys, 'frozen'):
 else:
     gui = '--gui' in sys.argv[1:]
 
-if gui:
-    from PyQt5 import QtCore, QtWidgets, QtGui
-
 import os
 import signal
 
@@ -84,30 +81,9 @@ except ImportError:
     from tinkerforge.bricklet_air_quality import BrickletAirQuality, GetAllValues
     from tinkerforge.bricklet_outdoor_weather import BrickletOutdoorWeather, GetStationData, GetSensorData
 
-from tabletop_weather_station_demo.screens import screen_set_lcd, screen_tab_selected, screen_touch_gesture, screen_update, screen_slider_value, Screen, TIME_SECONDS
-from tabletop_weather_station_demo.value_db import ValueDB
-from tabletop_weather_station_demo.config import DEMO_VERSION
+from screens import screen_set_lcd, screen_tab_selected, screen_touch_gesture, screen_update, screen_slider_value, Screen, TIME_SECONDS
+from value_db import ValueDB
 
-if gui:
-    class GUIHandler(QtCore.QObject, log.Handler):
-        qtcb_add = QtCore.pyqtSignal(str)
-
-        def __init__(self, log_edit):
-            QtCore.QObject.__init__(self, log_edit)
-            log.Handler.__init__(self)
-
-            self.log_edit = log_edit
-
-            self.qtcb_add.connect(self.cb_add)
-
-        def emit(self, record):
-            entry = self.format(record)
-
-            self.qtcb_add.emit(entry)
-
-        def cb_add(self, entry):
-            self.log_edit.appendPlainText(entry)
-            self.log_edit.centerCursor()
 
 class TabletopWeatherStation(object):
     HOST = "tisch-wetterstation.lan"
@@ -343,119 +319,30 @@ def loop(run_ref, stop_queue):
         except Error:
             pass
 
+
 def main():
-    if gui:
-        from tabletop_weather_station_demo.load_pixmap import load_pixmap
-
-        app = QtWidgets.QApplication(sys.argv)
-
-        main_widget = QtWidgets.QWidget()
-        main_widget.setWindowIcon(QtGui.QIcon(load_pixmap('tabletop_weather_station_demo-icon.png')))
-        main_widget.setWindowTitle('Tabletop Weather Station Demo ' + DEMO_VERSION)
-        main_widget.setMinimumSize(800, 450)
-
-        button_layout = QtWidgets.QHBoxLayout()
-
-        main_layout = QtWidgets.QVBoxLayout()
-
-        log_edit = QtWidgets.QPlainTextEdit(main_widget)
-        log_edit.setReadOnly(True)
-        log_edit.setLineWrapMode(QtWidgets.QPlainTextEdit.NoWrap)
-        log_edit.setMaximumBlockCount(3000)
-
-        log_handler = GUIHandler(log_edit)
-        log_handler.setFormatter(log.Formatter('%(asctime)s <%(levelname)s> %(message)s'))
-
-        log.getLogger().addHandler(log_handler)
-
-        for other in log.getLogger().handlers:
-            if other != log_handler:
-                log.getLogger().removeHandler(other)
-
-        hide_button = QtWidgets.QPushButton('Hide', main_widget)
-        # Don't show hide_button on macOS, as the program is also visible in the dock (when hidden), which is confusing.
-        hide_button.setVisible(QtWidgets.QSystemTrayIcon.isSystemTrayAvailable() and sys.platform != 'darwin')
-
-        exit_button = QtWidgets.QPushButton('Exit', main_widget)
-        exit_button.clicked.connect(app.quit)
-
-        button_layout.addWidget(hide_button)
-        button_layout.addWidget(exit_button)
-
-        main_layout.addWidget(log_edit)
-        main_layout.addLayout(button_layout)
-
-        main_widget.setLayout(main_layout)
-        main_widget.show()
-
-        def toggle_main_widget():
-            if main_widget.isVisible():
-                main_widget.hide()
-                tray_show_action.setText("Show")
-            else:
-                main_widget.show()
-                tray_show_action.setText("Hide")
-
-        def tray_icon_activated(reason):
-            if reason != QtWidgets.QSystemTrayIcon.Context:
-                toggle_main_widget()
-
-        tray_icon = QtWidgets.QSystemTrayIcon(QtGui.QIcon(load_pixmap('tabletop_weather_station_demo-icon.png')), None)
-        tray_icon.activated.connect(tray_icon_activated)
-        tray_icon.setToolTip('Tabletop Weather Station Demo')
-
-        tray_menu = QtWidgets.QMenu(None)
-
-        tray_show_action = tray_menu.addAction('Hide')
-        tray_show_action.triggered.connect(toggle_main_widget)
-
-        tray_exit_action = tray_menu.addAction('Exit')
-        tray_exit_action.triggered.connect(app.quit)
-
-        tray_icon.setContextMenu(tray_menu)
-        if QtWidgets.QSystemTrayIcon.isSystemTrayAvailable() and sys.platform != 'darwin':
-            tray_icon.show()
-
-        hide_button.clicked.connect(toggle_main_widget)
 
     log.info('Tabletop Weather Station: Start')
 
     run_ref = [True]
     stop_queue = queue.Queue()
 
-    if gui:
-        thread = threading.Thread(target=loop, args=(run_ref, stop_queue))
-        thread.daemon = True
-        thread.start()
-
-        def quit_(*args):
-            log.info('Exiting')
-            app.quit()
-
-        signal.signal(signal.SIGINT, quit_)
-        signal.signal(signal.SIGTERM, quit_)
-
-        ec = app.exec_()
-
+    def quit_(*args):
+        log.info('Exiting')
         run_ref[0] = False
         stop_queue.put(None)
-        thread.join(2)
-    else:
-        def quit_(*args):
-            log.info('Exiting')
-            run_ref[0] = False
-            stop_queue.put(None)
 
-        signal.signal(signal.SIGINT, quit_)
-        signal.signal(signal.SIGTERM, quit_)
+    signal.signal(signal.SIGINT, quit_)
+    signal.signal(signal.SIGTERM, quit_)
 
-        loop(run_ref, stop_queue)
+    loop(run_ref, stop_queue)
 
-        ec = 0
+    ec = 0
 
     log.info('Tabletop Weather Station: End')
 
     sys.exit(ec)
+
 
 if __name__ == '__main__':
     main()

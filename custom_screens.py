@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import time
-from tabletop_weather_station_demo.screens import Screen
+from screens import Screen
+
 
 # Simple example for a custom screen.
 # In this example we show the time in HH:MM:SS format.
 # To try this example out add it to CUSTOM_SCREENS below.
 class ClockScreen(Screen):
     # text/icon: Text is taken if no icon is available
-    text = "Clock" # Text shown on tab
+    text = "Clock"  # Text shown on tab
     icon = None    # Icon shown on tab (see icons.py and data/ sub-directory)
 
     # Called when tab is selected
@@ -24,6 +25,7 @@ class ClockScreen(Screen):
 
 ################################################
 # Add your custom screens and tab position here:
+
 
 CUSTOM_SCREENS          = [] 
 CUSTOM_SCREENS_POSITION = 0 

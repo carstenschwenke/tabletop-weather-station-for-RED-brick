@@ -31,6 +31,7 @@ if (sys.hexversion & 0xFF000000) != 0x03000000:
 import os
 from PIL import Image, ImageFont, ImageDraw
 
+
 def bool_list_from_pil_image(image, width=128, height=64):
     # Convert image to black/white pixels
     image_data = image.load()
